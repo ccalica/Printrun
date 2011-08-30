@@ -288,31 +288,33 @@ class PronterWindow(wx.Frame, pronsole.pronsole):
         m.AppendSubMenu(self.macros_menu, "&Macros")
         self.Bind(wx.EVT_MENU, self.new_macro, self.macros_menu.Append(-1, "<&New...>"))
 
+        self.skeinforge_menu = wx.Menu()
         if sys.platform != 'darwin':
-            self.skeinforge_menu = wx.Menu()
             self.Bind(wx.EVT_MENU, lambda x:threading.Thread(target=lambda :self.do_skein("set")).start(), self.skeinforge_menu.Append(-1, "Open Skeinforge", " Adjust skeinforge settings"))
-            try:
-                from SkeinforgeQuickEditDialog import SkeinforgeQuickEditDialog
-                self.Bind(wx.EVT_MENU, lambda * e:SkeinforgeQuickEditDialog(self), self.skeinforge_menu.Append(-1, "Quick Edit", " Quickly adjust skeinforge settings for active profile"))
-            except:
-                pass
-            try:
-                from SkeinforgeProfileChanger import SkeinforgeProfileChanger
-                profileNamesList = SkeinforgeProfileChanger().getProfileNames()
-                activeProfileName = SkeinforgeProfileChanger().getActiveProfileName()
-                print "Skeinforge Profile is " + activeProfileName
-                self.skeinforge_profiles_menu = wx.Menu()
-                self.skeinforge_menu.AppendSubMenu(self.skeinforge_profiles_menu, "Profiles")
-                for profileName in profileNamesList:
-                    profileMenuItem = self.skeinforge_profiles_menu.AppendRadioItem(-1, profileName)
-                    if (profileName == activeProfileName):
-                        profileMenuItem.Check()
-                    self.Bind(wx.EVT_MENU, lambda x, p=profileName:SkeinforgeProfileChanger().setActiveProfileName(p), profileMenuItem)
-            except:
-                traceback.print_exc(file=sys.stdout)
-                pass
+        else:
+            self.Bind(wx.EVT_MENU, lambda x:os.system("skeinforge/skeinforge_application/show_skeinforge.sh"), self.skeinforge_menu.Append(-1, "Open Skeinforge", " Adjust skeinforge settings"))
+        try:
+            from SkeinforgeQuickEditDialog import SkeinforgeQuickEditDialog
+            self.Bind(wx.EVT_MENU, lambda * e:SkeinforgeQuickEditDialog(self), self.skeinforge_menu.Append(-1, "Quick Edit", " Quickly adjust skeinforge settings for active profile"))
+        except:
+            pass
+        try:
+            from SkeinforgeProfileChanger import SkeinforgeProfileChanger
+            profileNamesList = SkeinforgeProfileChanger().getProfileNames()
+            activeProfileName = SkeinforgeProfileChanger().getActiveProfileName()
+            print "Skeinforge Profile is " + activeProfileName
+            self.skeinforge_profiles_menu = wx.Menu()
+            self.skeinforge_menu.AppendSubMenu(self.skeinforge_profiles_menu, "Profiles")
+            for profileName in profileNamesList:
+                profileMenuItem = self.skeinforge_profiles_menu.AppendRadioItem(-1, profileName)
+                if (profileName == activeProfileName):
+                    profileMenuItem.Check()
+                self.Bind(wx.EVT_MENU, lambda x, p=profileName:SkeinforgeProfileChanger().setActiveProfileName(p), profileMenuItem)
+        except:
+            traceback.print_exc(file=sys.stdout)
+            pass
 
-            m.AppendSubMenu(self.skeinforge_menu, "Skeinforge")
+        m.AppendSubMenu(self.skeinforge_menu, "Skeinforge")
 
         self.Bind(wx.EVT_MENU, lambda * e:options(self), m.Append(-1, "&Options", " Options dialog"))
         self.menustrip.Append(m, "&Settings")
